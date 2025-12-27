@@ -1,314 +1,272 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { Play, Pause } from "lucide-react";
 
-/* =======================
-   PRESETS
-======================= */
+import React, { useEffect, useRef, useState, CSSProperties } from "react";
+import { Play, Pause, Volume2 } from "lucide-react";
 
-const PRESETS = {
-  aurora: {
-    name: "Aurora",
-    background:
-      "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)",
-    theme: {
-      panelBg: "rgba(255,255,255,0.08)",
-      panelBorder: "1px solid rgba(255,255,255,0.25)",
-      text: "#ffffff",
-      accent: "#60a5fa",
-      glow: "0 0 40px rgba(96,165,250,0.35)"
-    },
-    panels: [
-      {
-        widgets: [
-          { type: "profile", name: "Aiden", bio: "Developer & Builder" },
-          {
-            type: "socials",
-            items: [
-              { label: "GitHub", icon: "💻", url: "#" },
-              { label: "YouTube", icon: "▶️", url: "#" },
-              { label: "Discord", icon: "💬", url: "#" }
-            ]
-          }
-        ]
-      },
-      {
-        widgets: [
-          {
-            type: "text",
-            title: "About Me",
-            text:
-              "I build systems, interfaces, and tools. This is a modular bio system with parallax."
-          },
-          {
-            type: "gallery",
-            images: [
-              "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600",
-              "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=600",
-              "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=600"
-            ]
-          }
-        ]
-      },
-      {
-        widgets: [
-          {
-            type: "video",
-            title: "Featured Video",
-            url: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-          }
-        ]
-      }
-    ]
-  },
+type Badge = { icon: string; tooltip: string };
+type SocialIcon = { platform: string; label: string; url: string; iconType: "emoji" | "image"; icon: string };
+type PanelWidget =
+  | { type: "profile"; data: { avatar: string; name: string; bio: string; decoration?: string; badges?: Badge[] } }
+  | { type: "social-icons"; data: { icons: SocialIcon[] } }
+  | { type: "music-player"; data: { song: string; audioUrl: string; duration: number } }
+  | { type: "gallery"; data: { title: string; items: { type: "image"; src: string; alt: string }[]; autoplay?: boolean; interval?: number } }
+  | { type: "video-frame"; data: { title: string; videoUrl: string; aspectRatio: string } };
 
-  crimson: {
-    name: "Crimson",
-    background:
-      "linear-gradient(135deg, #0b0000 0%, #3b0000 50%, #0b0000 100%)",
-    theme: {
-      panelBg: "rgba(0,0,0,0.6)",
-      panelBorder: "1px solid rgba(255,0,0,0.4)",
-      text: "#ffffff",
-      accent: "#ef4444",
-      glow: "0 0 40px rgba(239,68,68,0.4)"
-    },
-    panels: [
-      {
-        widgets: [
-          { type: "profile", name: "vell!", bio: "Creator • Gamer" },
-          {
-            type: "button",
-            label: "Join Discord",
-            url: "#"
-          }
-        ]
-      },
-      {
-        widgets: [
-          {
-            type: "music",
-            song: "Demo Track",
-            src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-          }
-        ]
-      }
-    ]
-  }
+type Preset = {
+  name: string;
+  background: { type: "image" | "gradient" | "solid"; value: string; parallax?: boolean };
+  panels: PanelWidget[];
+  theme: {
+    widgetBorder: string;
+    widgetBackground: string;
+    widgetHoverBackground: string;
+    textColor: string;
+    accentColor: string;
+    buttonBackground: string;
+    buttonHoverBackground: string;
+    parallaxIntensity: number;
+    mouseGrindIntensity: number;
+  };
 };
 
-/* =======================
-   MAIN COMPONENT
-======================= */
+const presets: Record<string, Preset> = {
+  aiden: {
+    name: "Aiden",
+    background: { type: "image", value: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200", parallax: true },
+    panels: [
+      {
+        type: "profile",
+        data: {
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=aiden",
+          name: "Aiden",
+          bio: "Owner/Dev @ E-Z Services|",
+          decoration: "cat",
+          badges: [
+            { icon: "crown", tooltip: "Owner" },
+            { icon: "code", tooltip: "Developer" },
+            { icon: "shield", tooltip: "Admin" },
+          ],
+        },
+      },
+      {
+        type: "social-icons",
+        data: {
+          icons: [
+            { platform: "github", label: "GitHub", url: "https://github.com", iconType: "emoji", icon: "💻" },
+            { platform: "website", label: "Website", url: "https://example.com", iconType: "emoji", icon: "🌐" },
+          ],
+        },
+      },
+      {
+        type: "music-player",
+        data: {
+          song: "ovine hall - pep",
+          audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          duration: 118,
+        },
+      },
+    ],
+    theme: {
+      widgetBorder: "2px solid rgba(255, 255, 255, 0.3)",
+      widgetBackground: "rgba(30, 58, 108, 0.85)",
+      widgetHoverBackground: "rgba(40, 68, 118, 0.9)",
+      textColor: "#ffffff",
+      accentColor: "#5b7ebd",
+      buttonBackground: "rgba(255, 255, 255, 0.15)",
+      buttonHoverBackground: "rgba(255, 255, 255, 0.25)",
+      parallaxIntensity: 0.05,
+      mouseGrindIntensity: 8,
+    },
+  },
+  vell: {
+    name: "Vell",
+    background: { type: "gradient", value: "linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%)", parallax: true },
+    panels: [
+      {
+        type: "profile",
+        data: {
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=vell&backgroundColor=b6e3f4",
+          name: "Vell",
+          bio: "Hi! I'm velvetide but most people call me Vell",
+          decoration: "cross",
+        },
+      },
+      {
+        type: "social-icons",
+        data: {
+          icons: [
+            { platform: "discord", label: "Discord", url: "https://discord.com", iconType: "emoji", icon: "💬" },
+            { platform: "youtube", label: "YouTube", url: "https://youtube.com", iconType: "emoji", icon: "▶️" },
+          ],
+        },
+      },
+      {
+        type: "music-player",
+        data: {
+          song: "Gorillaz - Dare",
+          audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+          duration: 243,
+        },
+      },
+    ],
+    theme: {
+      widgetBorder: "2px solid #ff0000",
+      widgetBackground: "rgba(0, 0, 0, 0.6)",
+      widgetHoverBackground: "rgba(20, 0, 0, 0.8)",
+      textColor: "#ffffff",
+      accentColor: "#ff0000",
+      buttonBackground: "#ff0000",
+      buttonHoverBackground: "#cc0000",
+      parallaxIntensity: 0.03,
+      mouseGrindIntensity: 5,
+    },
+  },
+};
 
-export default function BioPage() {
-  const [presetKey, setPresetKey] = useState("aurora");
-  const preset = PRESETS[presetKey];
-
-  const containerRef = useRef(null);
+export default function Landing() {
+  const [currentPreset, setCurrentPreset] = useState<keyof typeof presets>("aiden");
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [scroll, setScroll] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
-  /* Mouse + Scroll */
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const preset = presets[currentPreset];
+
+  // mouse move
   useEffect(() => {
-    const move = (e) => {
+    const handle = (e: MouseEvent) => {
       if (!containerRef.current) return;
-      const r = containerRef.current.getBoundingClientRect();
-      setMouse({
-        x: (e.clientX - r.left - r.width / 2) / r.width,
-        y: (e.clientY - r.top - r.height / 2) / r.height
-      });
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+      const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+      setMouse({ x, y });
     };
-    const onScroll = () => setScroll(window.scrollY);
-    window.addEventListener("mousemove", move);
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("mousemove", handle);
+    return () => window.removeEventListener("mousemove", handle);
+  }, []);
+
+  // scroll
+  useEffect(() => {
+    const handle = () => setScroll(window.scrollY);
+    window.addEventListener("scroll", handle);
+    return () => window.removeEventListener("scroll", handle);
+  }, []);
+
+  // audio
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const timeUpdate = () => setCurrentTime(audio.currentTime);
+    const loaded = () => setDuration(audio.duration);
+    audio.addEventListener("timeupdate", timeUpdate);
+    audio.addEventListener("loadedmetadata", loaded);
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("scroll", onScroll);
+      audio.removeEventListener("timeupdate", timeUpdate);
+      audio.removeEventListener("loadedmetadata", loaded);
     };
   }, []);
 
-  const masterTransform = {
-    transform: `
-      perspective(1200px)
-      rotateX(${mouse.y * -10}deg)
-      rotateY(${mouse.x * 10}deg)
-      translateY(${scroll * 0.05}px)
-    `,
-    transformStyle: "preserve-3d"
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play();
+    setIsPlaying(!isPlaying);
   };
 
+  const masterTransform: CSSProperties = {
+    transform: `
+      perspective(1000px)
+      rotateX(${mouse.y * -preset.theme.mouseGrindIntensity}deg)
+      rotateY(${mouse.x * preset.theme.mouseGrindIntensity}deg)
+      translateY(${scroll * preset.theme.parallaxIntensity}px)
+    `,
+    transformStyle: "preserve-3d" as "preserve-3d",
+  };
+
+  const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+
   return (
-    <div
-      className="min-h-screen overflow-hidden"
-      style={{ background: preset.background }}
-    >
-      {/* Preset Switch */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex gap-2">
-        {Object.keys(PRESETS).map((k) => (
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Preset Switcher */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex gap-2 bg-black bg-opacity-50 rounded-full p-2 backdrop-blur-sm">
+        {Object.keys(presets).map((key) => (
           <button
-            key={k}
-            onClick={() => setPresetKey(k)}
-            className={`px-4 py-2 rounded-full text-sm ${
-              k === presetKey ? "bg-white text-black" : "bg-black/40 text-white"
+            key={key}
+            onClick={() => setCurrentPreset(key as keyof typeof presets)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+              currentPreset === key ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:bg-opacity-20"
             }`}
           >
-            {PRESETS[k].name}
+            {key}
           </button>
         ))}
       </div>
 
-      {/* MASTER PANEL */}
+      {/* Background */}
       <div
-        ref={containerRef}
-        className="relative z-10 max-w-2xl mx-auto py-32 space-y-8 px-6"
-        style={masterTransform}
+        className="fixed inset-0 w-full h-full transition-all duration-500"
+        style={{
+          ...(preset.background.type === "image" ? { backgroundImage: `url(${preset.background.value})`, backgroundSize: "cover", backgroundPosition: "center" } : {}),
+          ...(preset.background.type === "gradient" ? { background: preset.background.value } : {}),
+        }}
       >
-        {preset.panels.map((panel, i) => (
-          <Panel key={i} preset={preset}>
-            {panel.widgets.map((w, j) => (
-              <Widget key={j} widget={w} preset={preset} />
-            ))}
-          </Panel>
-        ))}
+        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       </div>
-    </div>
-  );
-}
 
-/* =======================
-   PANEL
-======================= */
-
-function Panel({ children, preset }) {
-  return (
-    <div
-      className="rounded-3xl p-6 space-y-5 backdrop-blur-md"
-      style={{
-        background: preset.theme.panelBg,
-        border: preset.theme.panelBorder,
-        boxShadow: preset.theme.glow
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* =======================
-   WIDGETS
-======================= */
-
-function Widget({ widget, preset }) {
-  switch (widget.type) {
-    case "profile":
-      return (
-        <div className="text-center">
-          <div className="w-28 h-28 mx-auto rounded-full bg-white/20 mb-4" />
-          <h1 className="text-3xl font-bold text-white">{widget.name}</h1>
-          <p className="text-white/70">{widget.bio}</p>
-        </div>
-      );
-
-    case "socials":
-      return (
-        <div className="flex justify-center gap-4">
-          {widget.items.map((s, i) => (
-            <a
-              key={i}
-              href={s.url}
-              className="w-12 h-12 rounded-full flex items-center justify-center bg-white/10 hover:scale-110 transition"
-            >
-              {s.icon}
-            </a>
-          ))}
-        </div>
-      );
-
-    case "text":
-      return (
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-2">
-            {widget.title}
-          </h3>
-          <p className="text-white/70">{widget.text}</p>
-        </div>
-      );
-
-    case "gallery":
-      return (
-        <div className="grid grid-cols-3 gap-3">
-          {widget.images.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              className="rounded-xl object-cover aspect-square"
-            />
-          ))}
-        </div>
-      );
-
-    case "video":
-      return (
-        <div>
-          <h3 className="text-white mb-3">{widget.title}</h3>
-          <div className="relative pt-[56.25%] rounded-xl overflow-hidden">
-            <iframe
-              src={widget.url}
-              className="absolute inset-0 w-full h-full"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      );
-
-    case "music":
-      return <MusicPlayer src={widget.src} title={widget.song} />;
-
-    case "button":
-      return (
-        <a
-          href={widget.url}
-          className="block text-center py-3 rounded-xl font-semibold"
-          style={{ background: preset.theme.accent, color: "#000" }}
-        >
-          {widget.label}
-        </a>
-      );
-
-    default:
-      return (
-        <div className="text-white/50 text-sm">
-          Unknown widget: {widget.type}
-        </div>
-      );
-  }
-}
-
-/* =======================
-   MUSIC PLAYER
-======================= */
-
-function MusicPlayer({ src, title }) {
-  const audioRef = useRef(null);
-  const [play, setPlay] = useState(false);
-
-  const toggle = () => {
-    if (!audioRef.current) return;
-    play ? audioRef.current.pause() : audioRef.current.play();
-    setPlay(!play);
-  };
-
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-white">{title}</span>
-      <button
-        onClick={toggle}
-        className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center"
-      >
-        {play ? <Pause /> : <Play />}
-      </button>
-      <audio ref={audioRef} src={src} />
+      {/* Content */}
+      <div ref={containerRef} className="relative z-10 flex flex-col items-center justify-center min-h-screen py-20 px-6" style={masterTransform}>
+        {preset.panels.map((panel, i) => {
+          switch (panel.type) {
+            case "profile":
+              return (
+                <div key={i} className="relative rounded-3xl p-8 mb-10 backdrop-blur-md" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
+                  <img src={panel.data.avatar} alt={panel.data.name} className="w-32 h-32 rounded-full border-4" style={{ borderColor: preset.theme.accentColor }} />
+                  <h1 className="text-3xl font-bold mt-4" style={{ color: preset.theme.textColor }}>{panel.data.name}</h1>
+                  <p style={{ color: preset.theme.textColor, opacity: 0.8 }}>{panel.data.bio}</p>
+                </div>
+              );
+            case "social-icons":
+              return (
+                <div key={i} className="rounded-3xl p-6 mb-10 backdrop-blur-md flex gap-4" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
+                  {panel.data.icons.map((icon, j) => (
+                    <a key={j} href={icon.url} target="_blank" rel="noopener noreferrer" className="text-2xl transition hover:scale-125">
+                      {icon.icon}
+                    </a>
+                  ))}
+                </div>
+              );
+            case "music-player":
+              return (
+                <div key={i} className="rounded-3xl p-6 mb-10 backdrop-blur-md" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
+                  <audio ref={audioRef} src={panel.data.audioUrl} />
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 style={{ color: preset.theme.textColor }}>{panel.data.song}</h3>
+                    <button onClick={togglePlay} className="p-2 bg-gray-300 rounded-full">
+                      {isPlaying ? <Pause /> : <Play />}
+                    </button>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-white/20 relative cursor-pointer" onClick={(e) => {
+                    const rect = (e.target as HTMLDivElement).getBoundingClientRect();
+                    if (!audioRef.current) return;
+                    audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
+                  }}>
+                    <div className="h-full rounded-full bg-blue-500" style={{ width: `${(currentTime / duration) * 100}%` }} />
+                  </div>
+                  <div className="flex justify-between text-xs mt-1" style={{ color: preset.theme.textColor }}>
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+              );
+            default:
+              return null;
+          }
+        })}
+      </div>
     </div>
   );
 }
