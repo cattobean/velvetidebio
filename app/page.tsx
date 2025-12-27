@@ -3,42 +3,37 @@
 import React, { useEffect, useRef, useState, CSSProperties } from "react";
 import { Play, Pause, Volume2 } from "lucide-react";
 
+// ---------------------- Types ----------------------
 type Badge = { icon: string; tooltip: string };
-type SocialIcon = { platform: string; label: string; url: string; iconType: "emoji" | "image"; icon: string };
-type PanelWidget =
-  | { type: "profile"; data: { avatar: string; name: string; bio: string; decoration?: string; badges?: Badge[] } }
-  | { type: "social-icons"; data: { icons: SocialIcon[] } }
-  | { type: "music-player"; data: { song: string; audioUrl: string; duration: number } };
-
-type Preset = {
-  name: string;
-  background: { type: "image" | "gradient" | "solid"; value: string; parallax?: boolean };
-  panels: PanelWidget[];
-  theme: {
-    widgetBorder: string;
-    widgetBackground: string;
-    widgetHoverBackground: string;
-    textColor: string;
-    accentColor: string;
-    buttonBackground: string;
-    buttonHoverBackground: string;
-    parallaxIntensity: number;
-    mouseGrindIntensity: number;
-  };
+type Panel = { type: string; data: any };
+type Theme = {
+  widgetBorder: string;
+  widgetBackground: string;
+  widgetHoverBackground: string;
+  textColor: string;
+  accentColor: string;
+  buttonBackground: string;
+  buttonHoverBackground: string;
+  parallaxIntensity: number;
+  mouseGrindIntensity: number;
 };
+type Preset = { name: string; background: any; panels: Panel[]; theme: Theme };
 
-const presets: Record<string, Preset> = {
-  aiden: {
+// ---------------------- Sample Presets ----------------------
+const presets: Preset[] = [
+  {
     name: "Aiden",
-    background: { type: "image", value: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200", parallax: true },
+    background: {
+      type: "image",
+      value: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200",
+    },
     panels: [
       {
         type: "profile",
         data: {
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=aiden",
           name: "Aiden",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=aiden",
           bio: "Owner/Dev @ E-Z Services",
-          decoration: "cat",
           badges: [
             { icon: "crown", tooltip: "Owner" },
             { icon: "code", tooltip: "Developer" },
@@ -50,15 +45,15 @@ const presets: Record<string, Preset> = {
         type: "social-icons",
         data: {
           icons: [
-            { platform: "github", label: "GitHub", url: "https://github.com", iconType: "emoji", icon: "💻" },
-            { platform: "website", label: "Website", url: "https://example.com", iconType: "emoji", icon: "🌐" },
+            { icon: "🌐", label: "Website", url: "https://example.com" },
+            { icon: "💻", label: "GitHub", url: "https://github.com" },
           ],
         },
       },
       {
         type: "music-player",
         data: {
-          song: "ovine hall - pep",
+          song: "Ovine Hall - Pep",
           audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
           duration: 118,
         },
@@ -68,33 +63,36 @@ const presets: Record<string, Preset> = {
       widgetBorder: "2px solid rgba(255, 255, 255, 0.3)",
       widgetBackground: "rgba(30, 58, 108, 0.85)",
       widgetHoverBackground: "rgba(40, 68, 118, 0.9)",
-      textColor: "#ffffff",
+      textColor: "#fff",
       accentColor: "#5b7ebd",
-      buttonBackground: "rgba(255, 255, 255, 0.15)",
-      buttonHoverBackground: "rgba(255, 255, 255, 0.25)",
+      buttonBackground: "rgba(255,255,255,0.15)",
+      buttonHoverBackground: "rgba(255,255,255,0.25)",
       parallaxIntensity: 0.05,
       mouseGrindIntensity: 8,
     },
   },
-  vell: {
+  {
     name: "Vell",
-    background: { type: "gradient", value: "linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%)", parallax: true },
+    background: {
+      type: "gradient",
+      value: "linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%)",
+    },
     panels: [
       {
         type: "profile",
         data: {
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=vell&backgroundColor=b6e3f4",
           name: "Vell",
-          bio: "Hi! I'm velvetide but most people call me Vell",
-          decoration: "cross",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=vell",
+          bio: "Hi! I'm Velvetide, people call me Vell",
+          badges: [{ icon: "gem", tooltip: "Premium" }],
         },
       },
       {
         type: "social-icons",
         data: {
           icons: [
-            { platform: "discord", label: "Discord", url: "https://discord.com", iconType: "emoji", icon: "💬" },
-            { platform: "youtube", label: "YouTube", url: "https://youtube.com", iconType: "emoji", icon: "▶️" },
+            { icon: "💬", label: "Discord", url: "https://discord.com" },
+            { icon: "🎮", label: "Roblox", url: "https://roblox.com" },
           ],
         },
       },
@@ -109,9 +107,9 @@ const presets: Record<string, Preset> = {
     ],
     theme: {
       widgetBorder: "2px solid #ff0000",
-      widgetBackground: "rgba(0, 0, 0, 0.6)",
-      widgetHoverBackground: "rgba(20, 0, 0, 0.8)",
-      textColor: "#ffffff",
+      widgetBackground: "rgba(0,0,0,0.6)",
+      widgetHoverBackground: "rgba(20,0,0,0.8)",
+      textColor: "#fff",
       accentColor: "#ff0000",
       buttonBackground: "#ff0000",
       buttonHoverBackground: "#cc0000",
@@ -119,52 +117,57 @@ const presets: Record<string, Preset> = {
       mouseGrindIntensity: 5,
     },
   },
+];
+
+// ---------------------- Helper Functions ----------------------
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 };
 
-export default function Landing() {
-  const [currentPreset, setCurrentPreset] = useState<keyof typeof presets>("aiden");
+// ---------------------- Main Component ----------------------
+export default function BioSystem() {
+  const [presetIndex, setPresetIndex] = useState(0);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [scroll, setScroll] = useState(0);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-
   const audioRef = useRef<HTMLAudioElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const preset = presets[currentPreset];
+  const preset = presets[presetIndex];
 
-  // Mouse move
+  // ---------------------- Effects ----------------------
   useEffect(() => {
-    const handle = (e: MouseEvent) => {
+    const handleMouse = (e: MouseEvent) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
-      const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
-      setMouse({ x, y });
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      setMouse({ x: (e.clientX - centerX) / (rect.width / 2), y: (e.clientY - centerY) / (rect.height / 2) });
     };
-    window.addEventListener("mousemove", handle);
-    return () => window.removeEventListener("mousemove", handle);
+    const handleScroll = () => setScroll(window.scrollY);
+    window.addEventListener("mousemove", handleMouse);
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("mousemove", handleMouse);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
-  // Scroll
-  useEffect(() => {
-    const handle = () => setScroll(window.scrollY);
-    window.addEventListener("scroll", handle);
-    return () => window.removeEventListener("scroll", handle);
-  }, []);
-
-  // Audio events
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const timeUpdate = () => setCurrentTime(audio.currentTime);
-    const loaded = () => setDuration(audio.duration);
-    audio.addEventListener("timeupdate", timeUpdate);
-    audio.addEventListener("loadedmetadata", loaded);
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration || 0);
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
     return () => {
-      audio.removeEventListener("timeupdate", timeUpdate);
-      audio.removeEventListener("loadedmetadata", loaded);
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("loadedmetadata", updateDuration);
     };
   }, []);
 
@@ -175,6 +178,7 @@ export default function Landing() {
     setIsPlaying(!isPlaying);
   };
 
+  // ---------------------- Transform ----------------------
   const masterTransform: CSSProperties = {
     transform: `
       perspective(1000px)
@@ -185,126 +189,132 @@ export default function Landing() {
     transformStyle: "preserve-3d" as "preserve-3d",
   };
 
-  const formatTime = (s: number) =>
-    `${Math.floor(s / 60).toString().padStart(2, "0")}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+  // ---------------------- Panel Renderer ----------------------
+  const renderPanel = (panel: Panel, i: number) => {
+    const theme = preset.theme;
+
+    switch (panel.type) {
+      case "profile":
+        return (
+          <div
+            key={i}
+            className="relative w-full max-w-lg p-8 rounded-3xl backdrop-blur-md shadow-xl flex flex-col items-center text-center transition-all duration-300 hover:shadow-2xl"
+            style={{ border: theme.widgetBorder, background: theme.widgetBackground }}
+          >
+            <img src={panel.data.avatar} alt={panel.data.name} className="w-32 h-32 rounded-full mb-4 border-4" style={{ borderColor: theme.accentColor }} />
+            <h1 className="text-2xl font-bold mb-2" style={{ color: theme.textColor }}>
+              {panel.data.name}
+            </h1>
+            <p className="text-sm mb-4" style={{ color: theme.textColor, opacity: 0.9 }}>
+              {panel.data.bio}
+            </p>
+            <div className="flex gap-2">
+              {panel.data.badges?.map((b: Badge, j: number) => (
+                <div key={j} className="p-1 rounded-full text-xs bg-white bg-opacity-20" style={{ color: theme.textColor }}>
+                  {b.tooltip}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case "social-icons":
+        return (
+          <div
+            key={i}
+            className="relative w-full max-w-lg p-6 rounded-3xl backdrop-blur-md shadow-xl flex flex-wrap justify-center gap-4 transition-all duration-300 hover:shadow-2xl"
+            style={{ border: theme.widgetBorder, background: theme.widgetBackground }}
+          >
+            {panel.data.icons.map((icon: any, j: number) => (
+              <a
+                key={j}
+                href={icon.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 flex items-center justify-center rounded-full transition-transform hover:scale-110"
+                style={{ backgroundColor: theme.buttonBackground, border: `2px solid ${theme.accentColor}` }}
+                onMouseEnter={() => setHoveredIcon(`${i}-${j}`)}
+                onMouseLeave={() => setHoveredIcon(null)}
+              >
+                {icon.icon}
+              </a>
+            ))}
+          </div>
+        );
+      case "music-player":
+        return (
+          <div
+            key={i}
+            className="relative w-full max-w-lg p-6 rounded-3xl backdrop-blur-md shadow-xl flex flex-col gap-3 transition-all duration-300 hover:shadow-2xl"
+            style={{ border: theme.widgetBorder, background: theme.widgetBackground }}
+          >
+            <audio ref={audioRef} src={panel.data.audioUrl} />
+            <h3 className="text-center font-semibold" style={{ color: theme.textColor }}>
+              {panel.data.song}
+            </h3>
+            <div className="flex items-center justify-between">
+              <span style={{ color: theme.textColor, opacity: 0.7 }}>{formatTime(currentTime)}</span>
+              <div
+                className="flex-1 h-1.5 rounded-full bg-white bg-opacity-20 mx-2 cursor-pointer"
+                onClick={(e) => {
+                  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+                  const percent = (e.clientX - rect.left) / rect.width;
+                  if (audioRef.current) audioRef.current.currentTime = percent * duration;
+                }}
+              >
+                <div className="h-full rounded-full bg-blue-500" style={{ width: `${(currentTime / duration) * 100}%` }} />
+              </div>
+              <span style={{ color: theme.textColor, opacity: 0.7 }}>{formatTime(duration)}</span>
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              <button onClick={togglePlay} className="p-2 rounded-full" style={{ backgroundColor: theme.accentColor }}>
+                {isPlaying ? <Pause color={theme.textColor} /> : <Play color={theme.textColor} />}
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Preset Switcher */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex gap-2 bg-black bg-opacity-50 rounded-full p-2 backdrop-blur-sm">
-        {Object.keys(presets).map((key) => (
+      {/* Background */}
+      <div
+        className="fixed inset-0 w-full h-full bg-cover bg-center"
+        style={{
+          backgroundImage: preset.background.type === "image" ? `url(${preset.background.value})` : undefined,
+          background: preset.background.type === "gradient" ? preset.background.value : undefined,
+        }}
+      >
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
+      </div>
+
+      {/* Preset selector */}
+      <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 flex gap-2 bg-black bg-opacity-50 rounded-full p-2 backdrop-blur-sm">
+        {presets.map((p, i) => (
           <button
-            key={key}
-            onClick={() => setCurrentPreset(key as keyof typeof presets)}
+            key={i}
+            onClick={() => setPresetIndex(i)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-              currentPreset === key ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:bg-opacity-20"
+              presetIndex === i ? "bg-white text-black" : "bg-transparent text-white hover:bg-white hover:bg-opacity-20"
             }`}
           >
-            {key}
+            {p.name}
           </button>
         ))}
       </div>
 
-      {/* Background */}
-      <div
-        className="fixed inset-0 w-full h-full transition-all duration-500"
-        style={{
-          ...(preset.background.type === "image"
-            ? { backgroundImage: `url(${preset.background.value})`, backgroundSize: "cover", backgroundPosition: "center" }
-            : {}),
-          ...(preset.background.type === "gradient" ? { background: preset.background.value } : {}),
-        }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-25"></div>
+      {/* Master Panel Container */}
+      <div ref={containerRef} className="relative z-10 flex flex-col items-center justify-start min-h-screen py-32 px-6 gap-12" style={masterTransform}>
+        {preset.panels.map((panel, i) => renderPanel(panel, i))}
       </div>
 
-      {/* Content */}
+      {/* Custom cursor */}
       <div
-        ref={containerRef}
-        className="relative z-10 flex flex-col items-center justify-start min-h-screen py-20 px-6 space-y-12"
-        style={masterTransform}
-      >
-        {preset.panels.map((panel, i) => {
-          switch (panel.type) {
-            case "profile":
-              return (
-                <div
-                  key={i}
-                  className="relative rounded-3xl p-8 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex flex-col items-center"
-                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
-                >
-                  <div className="relative">
-                    <img src={panel.data.avatar} alt={panel.data.name} className="w-32 h-32 rounded-full border-4" style={{ borderColor: preset.theme.accentColor }} />
-                    {panel.data.decoration === "cat" && <div className="absolute -top-3 -left-4 text-5xl transform -rotate-12">🐱</div>}
-                    {panel.data.decoration === "cross" && <div className="absolute -top-2 -right-2 text-6xl text-red-500">✕</div>}
-                  </div>
-                  <h1 className="text-3xl font-bold mt-4" style={{ color: preset.theme.textColor }}>
-                    {panel.data.name}
-                  </h1>
-                  <p className="text-center mt-2" style={{ color: preset.theme.textColor, opacity: 0.8 }}>
-                    {panel.data.bio}
-                  </p>
-                </div>
-              );
-            case "social-icons":
-              return (
-                <div
-                  key={i}
-                  className="rounded-3xl p-6 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex justify-center gap-4"
-                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
-                >
-                  {panel.data.icons.map((icon, j) => (
-                    <a
-                      key={j}
-                      href={icon.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-3xl transition-transform hover:scale-125 hover:-translate-y-1"
-                    >
-                      {icon.icon}
-                    </a>
-                  ))}
-                </div>
-              );
-            case "music-player":
-              return (
-                <div
-                  key={i}
-                  className="rounded-3xl p-6 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex flex-col gap-4"
-                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
-                >
-                  <audio ref={audioRef} src={panel.data.audioUrl} />
-                  <h3 className="text-lg font-semibold" style={{ color: preset.theme.textColor }}>
-                    {panel.data.song}
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <button onClick={togglePlay} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition">
-                      {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                    </button>
-                    <div
-                      className="flex-1 h-2 rounded-full bg-white/20 relative cursor-pointer"
-                      onClick={(e) => {
-                        const rect = (e.target as HTMLDivElement).getBoundingClientRect();
-                        if (!audioRef.current) return;
-                        audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
-                      }}
-                    >
-                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${(currentTime / duration) * 100}%` }} />
-                    </div>
-                    <span className="text-xs" style={{ color: preset.theme.textColor }}>
-                      {formatTime(currentTime)}
-                    </span>
-                    <span className="text-xs" style={{ color: preset.theme.textColor }}>
-                      {formatTime(duration)}
-                    </span>
-                  </div>
-                </div>
-              );
-            default:
-              return null;
-          }
-        })}
-      </div>
+        className="fixed top-0 left-0 w-4 h-4 rounded-full pointer-events-none bg-white mix-blend-difference"
+        style={{ transform: `translate(${mouse.x * 20 + window.innerWidth / 2}px, ${mouse.y * 20 + window.innerHeight / 2}px)` }}
+      />
     </div>
   );
 }
