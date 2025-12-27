@@ -8,9 +8,7 @@ type SocialIcon = { platform: string; label: string; url: string; iconType: "emo
 type PanelWidget =
   | { type: "profile"; data: { avatar: string; name: string; bio: string; decoration?: string; badges?: Badge[] } }
   | { type: "social-icons"; data: { icons: SocialIcon[] } }
-  | { type: "music-player"; data: { song: string; audioUrl: string; duration: number } }
-  | { type: "gallery"; data: { title: string; items: { type: "image"; src: string; alt: string }[]; autoplay?: boolean; interval?: number } }
-  | { type: "video-frame"; data: { title: string; videoUrl: string; aspectRatio: string } };
+  | { type: "music-player"; data: { song: string; audioUrl: string; duration: number } };
 
 type Preset = {
   name: string;
@@ -39,7 +37,7 @@ const presets: Record<string, Preset> = {
         data: {
           avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=aiden",
           name: "Aiden",
-          bio: "Owner/Dev @ E-Z Services|",
+          bio: "Owner/Dev @ E-Z Services",
           decoration: "cat",
           badges: [
             { icon: "crown", tooltip: "Owner" },
@@ -136,7 +134,7 @@ export default function Landing() {
 
   const preset = presets[currentPreset];
 
-  // mouse move
+  // Mouse move
   useEffect(() => {
     const handle = (e: MouseEvent) => {
       if (!containerRef.current) return;
@@ -149,14 +147,14 @@ export default function Landing() {
     return () => window.removeEventListener("mousemove", handle);
   }, []);
 
-  // scroll
+  // Scroll
   useEffect(() => {
     const handle = () => setScroll(window.scrollY);
     window.addEventListener("scroll", handle);
     return () => window.removeEventListener("scroll", handle);
   }, []);
 
-  // audio
+  // Audio events
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -187,7 +185,8 @@ export default function Landing() {
     transformStyle: "preserve-3d" as "preserve-3d",
   };
 
-  const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60).toString().padStart(2, "0")}:${Math.floor(s % 60).toString().padStart(2, "0")}`;
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -210,30 +209,58 @@ export default function Landing() {
       <div
         className="fixed inset-0 w-full h-full transition-all duration-500"
         style={{
-          ...(preset.background.type === "image" ? { backgroundImage: `url(${preset.background.value})`, backgroundSize: "cover", backgroundPosition: "center" } : {}),
+          ...(preset.background.type === "image"
+            ? { backgroundImage: `url(${preset.background.value})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : {}),
           ...(preset.background.type === "gradient" ? { background: preset.background.value } : {}),
         }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-25"></div>
       </div>
 
       {/* Content */}
-      <div ref={containerRef} className="relative z-10 flex flex-col items-center justify-center min-h-screen py-20 px-6" style={masterTransform}>
+      <div
+        ref={containerRef}
+        className="relative z-10 flex flex-col items-center justify-start min-h-screen py-20 px-6 space-y-12"
+        style={masterTransform}
+      >
         {preset.panels.map((panel, i) => {
           switch (panel.type) {
             case "profile":
               return (
-                <div key={i} className="relative rounded-3xl p-8 mb-10 backdrop-blur-md" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
-                  <img src={panel.data.avatar} alt={panel.data.name} className="w-32 h-32 rounded-full border-4" style={{ borderColor: preset.theme.accentColor }} />
-                  <h1 className="text-3xl font-bold mt-4" style={{ color: preset.theme.textColor }}>{panel.data.name}</h1>
-                  <p style={{ color: preset.theme.textColor, opacity: 0.8 }}>{panel.data.bio}</p>
+                <div
+                  key={i}
+                  className="relative rounded-3xl p-8 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex flex-col items-center"
+                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
+                >
+                  <div className="relative">
+                    <img src={panel.data.avatar} alt={panel.data.name} className="w-32 h-32 rounded-full border-4" style={{ borderColor: preset.theme.accentColor }} />
+                    {panel.data.decoration === "cat" && <div className="absolute -top-3 -left-4 text-5xl transform -rotate-12">🐱</div>}
+                    {panel.data.decoration === "cross" && <div className="absolute -top-2 -right-2 text-6xl text-red-500">✕</div>}
+                  </div>
+                  <h1 className="text-3xl font-bold mt-4" style={{ color: preset.theme.textColor }}>
+                    {panel.data.name}
+                  </h1>
+                  <p className="text-center mt-2" style={{ color: preset.theme.textColor, opacity: 0.8 }}>
+                    {panel.data.bio}
+                  </p>
                 </div>
               );
             case "social-icons":
               return (
-                <div key={i} className="rounded-3xl p-6 mb-10 backdrop-blur-md flex gap-4" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
+                <div
+                  key={i}
+                  className="rounded-3xl p-6 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex justify-center gap-4"
+                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
+                >
                   {panel.data.icons.map((icon, j) => (
-                    <a key={j} href={icon.url} target="_blank" rel="noopener noreferrer" className="text-2xl transition hover:scale-125">
+                    <a
+                      key={j}
+                      href={icon.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-3xl transition-transform hover:scale-125 hover:-translate-y-1"
+                    >
                       {icon.icon}
                     </a>
                   ))}
@@ -241,24 +268,35 @@ export default function Landing() {
               );
             case "music-player":
               return (
-                <div key={i} className="rounded-3xl p-6 mb-10 backdrop-blur-md" style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}>
+                <div
+                  key={i}
+                  className="rounded-3xl p-6 backdrop-blur-md shadow-lg hover:shadow-xl transition-all duration-300 w-full max-w-lg flex flex-col gap-4"
+                  style={{ border: preset.theme.widgetBorder, background: preset.theme.widgetBackground }}
+                >
                   <audio ref={audioRef} src={panel.data.audioUrl} />
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 style={{ color: preset.theme.textColor }}>{panel.data.song}</h3>
-                    <button onClick={togglePlay} className="p-2 bg-gray-300 rounded-full">
-                      {isPlaying ? <Pause /> : <Play />}
+                  <h3 className="text-lg font-semibold" style={{ color: preset.theme.textColor }}>
+                    {panel.data.song}
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <button onClick={togglePlay} className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition">
+                      {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                     </button>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-white/20 relative cursor-pointer" onClick={(e) => {
-                    const rect = (e.target as HTMLDivElement).getBoundingClientRect();
-                    if (!audioRef.current) return;
-                    audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
-                  }}>
-                    <div className="h-full rounded-full bg-blue-500" style={{ width: `${(currentTime / duration) * 100}%` }} />
-                  </div>
-                  <div className="flex justify-between text-xs mt-1" style={{ color: preset.theme.textColor }}>
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
+                    <div
+                      className="flex-1 h-2 rounded-full bg-white/20 relative cursor-pointer"
+                      onClick={(e) => {
+                        const rect = (e.target as HTMLDivElement).getBoundingClientRect();
+                        if (!audioRef.current) return;
+                        audioRef.current.currentTime = ((e.clientX - rect.left) / rect.width) * duration;
+                      }}
+                    >
+                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${(currentTime / duration) * 100}%` }} />
+                    </div>
+                    <span className="text-xs" style={{ color: preset.theme.textColor }}>
+                      {formatTime(currentTime)}
+                    </span>
+                    <span className="text-xs" style={{ color: preset.theme.textColor }}>
+                      {formatTime(duration)}
+                    </span>
                   </div>
                 </div>
               );
